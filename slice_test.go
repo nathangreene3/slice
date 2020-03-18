@@ -26,3 +26,7 @@ func Primes(n int) []int {
 func TestPrimes(t *testing.T) {
 	t.Fatal(Primes(40))
 }
+
+func TestRemoveAll(t *testing.T) {
+	t.Fatal(RemoveAll([]int{1, 2, 2, 2, 3, 2, 2, 4, 5, 2}, 2))
+}

@@ -63,3 +63,43 @@ func ToMap(a []int) map[int]int {
 
 	return m
 }
+
+// Contains ...
+func Contains(a []int, v int) bool {
+	return true // Should depend on search or whatever it gets called
+}
+
+// Search or find or index?
+func Search(a []int, v int) int {
+	return 0
+}
+
+// RemoveAll of a value from a slice.
+func RemoveAll(a []int, v int) []int {
+	if len(a) == 0 {
+		return a
+	}
+
+	// Iterate through a for i in [0,n), for n > 0.
+	// If a[i] = v, then find smallest j in [i,n) such that a[j] != v.
+	// If j = n, then a[i:n] = [v, v, ..., v], so return a[:i].
+	// Otherwise, set a[i] as a[j], which isn't v.
+	// Increment i and j.
+	// Repeat while i and j are in [i,n).
+	// When finished, i will be one larger than it should be, so return a[:i-1].
+	var i, j int
+	for ; i < len(a) && j < len(a); i, j = i+1, j+1 {
+		if a[i] == v {
+			for ; j < len(a) && a[j] == v; j++ {
+			}
+
+			if j == len(a) {
+				return a[:i]
+			}
+
+			a[i] = a[j]
+		}
+	}
+
+	return a[:i-1]
+}
