@@ -2,7 +2,7 @@ package slice
 
 import "testing"
 
-// Factor a positive integer.
+// Factor a positive integer. This is the naive solution.
 func Factor(n int) []int {
 	return Filter(
 		Generate(func(i int) int { return i + 1 }, n),
@@ -29,4 +29,7 @@ func TestPrimes(t *testing.T) {
 
 func TestRemoveAll(t *testing.T) {
 	t.Fatal(RemoveAll([]int{1, 2, 2, 2, 3, 2, 2, 4, 5, 2}, 2))
+}
+func TestUnique(t *testing.T) {
+	t.Fatal(Unique([]int{1, 1, 2, 2, 3, 3}))
 }

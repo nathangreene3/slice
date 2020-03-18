@@ -1,5 +1,14 @@
 package slice
 
+// ------------------------------------------------------------
+// DESIGN DECISION
+// ------------------------------------------------------------
+// If a function maps a type to the same type, the given type
+// will not be mutated and the returned type will be a new
+// value. If no type is returned, then the given type is
+// potentially mutated.
+// ------------------------------------------------------------
+
 // Filterer defines the conditions for retaining a value.
 type Filterer func(n int) bool
 
@@ -64,42 +73,57 @@ func ToMap(a []int) map[int]int {
 	return m
 }
 
-// Contains ...
+// Contains determines if a value is contained within a slice.
 func Contains(a []int, v int) bool {
-	return true // Should depend on search or whatever it gets called
+	return Search(a, v) < len(a)
 }
 
-// Search or find or index?
+// Search for a value and return the smallest index
+// referencing it. If not found, n will be returned.
 func Search(a []int, v int) int {
-	return 0
+	for i := 0; i < len(a); i++ {
+		if a[i] == v {
+			return i
+		}
+	}
+
+	// TODO: Should this return -1 instead?
+	return len(a)
 }
 
 // RemoveAll of a value from a slice.
 func RemoveAll(a []int, v int) []int {
-	if len(a) == 0 {
-		return a
+	return Filter(a, func(ai int) bool { return ai != v })
+}
+
+// Resize a slice.
+func Resize(a []int, n, c int) []int {
+	b := make([]int, n, c)
+	if n < len(a) {
+		copy(b, a[:n])
+	} else {
+		copy(b, a)
 	}
 
-	// Iterate through a for i in [0,n), for n > 0.
-	// If a[i] = v, then find smallest j in [i,n) such that a[j] != v.
-	// If j = n, then a[i:n] = [v, v, ..., v], so return a[:i].
-	// Otherwise, set a[i] as a[j], which isn't v.
-	// Increment i and j.
-	// Repeat while i and j are in [i,n).
-	// When finished, i will be one larger than it should be, so return a[:i-1].
-	var i, j int
-	for ; i < len(a) && j < len(a); i, j = i+1, j+1 {
-		if a[i] == v {
-			for ; j < len(a) && a[j] == v; j++ {
-			}
+	return b
+}
 
-			if j == len(a) {
-				return a[:i]
-			}
+// Swap two values.
+func Swap(a []int, i, j int) {
+	a[i], a[j] = a[j], a[i]
+}
 
-			a[i] = a[j]
+// Unique filters a for unique values. This function is stable.
+func Unique(a []int) []int {
+	m := make(map[int]struct{})
+	f := func(ai int) bool {
+		if v, ok := m[ai]; !ok {
+			m[ai] = v
+			return true
 		}
+
+		return false
 	}
 
-	return a[:i-1]
+	return Filter(a, f)
 }
