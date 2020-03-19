@@ -1,5 +1,9 @@
 package slice
 
+import (
+	"github.com/nathangreene3/math"
+)
+
 // ------------------------------------------------------------
 // DESIGN DECISION
 // ------------------------------------------------------------
@@ -73,9 +77,56 @@ func ToMap(a []int) map[int]int {
 	return m
 }
 
+// Compare ...
+func Compare(a, b []int) int {
+	n := math.Min(len(a), len(b))
+	for i := 0; i < n; i++ {
+		switch {
+		case a[i] < b[i]:
+			return -1
+		case b[i] < a[i]:
+			return 1
+		}
+	}
+
+	switch {
+	case len(a) < len(b):
+		return -1
+	case len(b) < len(a):
+		return 1
+	default:
+		return 0
+	}
+}
+
 // Contains determines if a value is contained within a slice.
 func Contains(a []int, v int) bool {
 	return Search(a, v) < len(a)
+}
+
+// ContainsAny ...
+func ContainsAny(a []int, vs ...int) bool {
+	for i := 0; i < len(a); i++ {
+		for j := 0; j < len(vs); j++ {
+			if a[i] == vs[j] {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
+// Count ...
+func Count(a []int, n int) int {
+	var c int
+	for i := 0; i < len(a); i++ {
+		if a[i] == n {
+			c++
+		}
+	}
+
+	return c
 }
 
 // Join several slices into one.
@@ -144,31 +195,36 @@ func Search(a []int, n int) int {
 	return len(a)
 }
 
-// Split a slice into slices of length n. Any excess values will be appended in a smaller slice.
-func Split(a []int, n int) [][]int {
-	// TODO: Finish this.
-	num := len(a) / n
-	if num*n < len(a) {
-		num++
+// ContainsSubSlice returns the index a subslice is found within a slice. If not
+// found, len(a) is returned.
+func ContainsSubSlice(a, sub []int) int {
+	if 0 < len(a) && 0 < len(sub) {
+		for i := 0; i+len(sub) < len(a); i++ {
+			if a[i] == sub[0] {
+				for j := 1; j < len(sub); j++ {
+					if a[i+j] != sub[j] {
+						return len(a)
+					}
+				}
+
+				return i
+			}
+		}
 	}
 
-	as := make([][]int, 0, num)
-	for i := 0; i < num; i++ {
-
-	}
-
-	return as
+	return len(a)
 }
 
 // RemoveAll of several values from a slice.
 func RemoveAll(a []int, vs ...int) []int {
 	f := func(ai int) bool {
-		var r bool
 		for j := 0; j < len(vs) && !r; j++ {
-			r = ai == vs[j]
+			if ai == vs[j] {
+				return false
+			}
 		}
 
-		return !r
+		return true
 	}
 
 	return Filter(a, f)
@@ -177,11 +233,7 @@ func RemoveAll(a []int, vs ...int) []int {
 // Resize a slice.
 func Resize(a []int, n, c int) []int {
 	b := make([]int, n, c)
-	if len(a) < n {
-		n = len(a)
-	}
-
-	copy(b, a[:n])
+	copy(b, a[:math.MinInt(n, len(a))])
 	return b
 }
 
