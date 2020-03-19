@@ -46,8 +46,8 @@ func Generate(f Generator, n int) []int {
 // Map a slice to a new slice.
 func Map(a []int, f Mapper) []int {
 	b := make([]int, 0, len(a))
-	for i := 0; i < len(a); i++ {
-		b = append(b, f(a[i]))
+	for len(b) < len(a) {
+		b = append(b, f(a[len(b)]))
 	}
 
 	return b
@@ -66,8 +66,8 @@ func Reduce(a []int, f Reducer) int {
 // ToMap returns a map of index-to-value pairs from a slice.
 func ToMap(a []int) map[int]int {
 	m := make(map[int]int)
-	for i := 0; i < len(a); i++ {
-		m[i] = a[i]
+	for len(m) < len(a) {
+		m[len(m)] = a[len(m)]
 	}
 
 	return m
@@ -78,11 +78,64 @@ func Contains(a []int, v int) bool {
 	return Search(a, v) < len(a)
 }
 
+// Join several slices into one.
+func Join(as ...[]int) []int {
+	var j, k, n int
+	for i := 0; i < len(as); i++ {
+		n += len(as[i])
+	}
+
+	return Generate(
+		func(i int) int {
+			if k < len(as[j]) {
+				k++
+			} else {
+				j++
+				k = 1
+			}
+
+			return as[j][k-1]
+		},
+		n,
+	)
+}
+
+// Join2 ...
+func Join2(as ...[]int) []int {
+	var n int
+	for i := 0; i < len(as); i++ {
+		n += len(as[i])
+	}
+
+	a := make([]int, n)
+	n = 0
+	for i := 0; i < len(as); i++ {
+		n += copy(a[n:n+len(as[i])], as[i])
+	}
+
+	return a
+}
+
+// Join3 ...
+func Join3(as ...[]int) []int {
+	var n int
+	for i := 0; i < len(as); i++ {
+		n += len(as[i])
+	}
+
+	a := make([]int, 0, n)
+	for i := 0; i < len(as); i++ {
+		a = append(a, as[i]...)
+	}
+
+	return a
+}
+
 // Search for a value and return the smallest index
 // referencing it. If not found, n will be returned.
-func Search(a []int, v int) int {
+func Search(a []int, n int) int {
 	for i := 0; i < len(a); i++ {
-		if a[i] == v {
+		if a[i] == n {
 			return i
 		}
 	}
@@ -91,20 +144,44 @@ func Search(a []int, v int) int {
 	return len(a)
 }
 
-// RemoveAll of a value from a slice.
-func RemoveAll(a []int, v int) []int {
-	return Filter(a, func(ai int) bool { return ai != v })
+// Split a slice into slices of length n. Any excess values will be appended in a smaller slice.
+func Split(a []int, n int) [][]int {
+	// TODO: Finish this.
+	num := len(a) / n
+	if num*n < len(a) {
+		num++
+	}
+
+	as := make([][]int, 0, num)
+	for i := 0; i < num; i++ {
+
+	}
+
+	return as
+}
+
+// RemoveAll of several values from a slice.
+func RemoveAll(a []int, vs ...int) []int {
+	f := func(ai int) bool {
+		var r bool
+		for j := 0; j < len(vs) && !r; j++ {
+			r = ai == vs[j]
+		}
+
+		return !r
+	}
+
+	return Filter(a, f)
 }
 
 // Resize a slice.
 func Resize(a []int, n, c int) []int {
 	b := make([]int, n, c)
-	if n < len(a) {
-		copy(b, a[:n])
-	} else {
-		copy(b, a)
+	if len(a) < n {
+		n = len(a)
 	}
 
+	copy(b, a[:n])
 	return b
 }
 
@@ -117,12 +194,12 @@ func Swap(a []int, i, j int) {
 func Unique(a []int) []int {
 	m := make(map[int]struct{})
 	f := func(ai int) bool {
-		if v, ok := m[ai]; !ok {
-			m[ai] = v
-			return true
+		_, ok := m[ai]
+		if !ok {
+			m[ai] = struct{}{}
 		}
 
-		return false
+		return !ok
 	}
 
 	return Filter(a, f)

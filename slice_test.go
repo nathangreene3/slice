@@ -28,8 +28,18 @@ func TestPrimes(t *testing.T) {
 }
 
 func TestRemoveAll(t *testing.T) {
-	t.Fatal(RemoveAll([]int{1, 2, 2, 2, 3, 2, 2, 4, 5, 2}, 2))
+	t.Fatal(RemoveAll([]int{1, 2, 2, 2, 3, 2, 2, 4, 5, 2}, 2, 4, 5))
 }
+
 func TestUnique(t *testing.T) {
 	t.Fatal(Unique([]int{1, 1, 2, 2, 3, 3}))
+}
+
+func TestJoin(t *testing.T) {
+	// t.Fatal(Join())
+	t.Fatal(
+		Join([]int{0, 1}, []int{2, 3, 4}, []int{5, 6, 7, 8, 9}),
+		Join2([]int{0, 1}, []int{2, 3, 4}, []int{5, 6, 7, 8, 9}),
+		Join3([]int{0, 1}, []int{2, 3, 4}, []int{5, 6, 7, 8, 9}),
+	)
 }
