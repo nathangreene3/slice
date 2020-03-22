@@ -1,8 +1,6 @@
 package slice
 
-import (
-	"github.com/nathangreene3/math"
-)
+import "github.com/nathangreene3/math"
 
 // ------------------------------------------------------------
 // DESIGN DECISION
@@ -79,7 +77,7 @@ func ToMap(a []int) map[int]int {
 
 // Compare ...
 func Compare(a, b []int) int {
-	n := math.Min(len(a), len(b))
+	n := math.MinInt(len(a), len(b))
 	for i := 0; i < n; i++ {
 		switch {
 		case a[i] < b[i]:
@@ -99,13 +97,8 @@ func Compare(a, b []int) int {
 	}
 }
 
-// Contains determines if a value is contained within a slice.
-func Contains(a []int, v int) bool {
-	return Search(a, v) < len(a)
-}
-
-// ContainsAny ...
-func ContainsAny(a []int, vs ...int) bool {
+// Contains ...
+func Contains(a []int, vs ...int) bool {
 	for i := 0; i < len(a); i++ {
 		for j := 0; j < len(vs); j++ {
 			if a[i] == vs[j] {
@@ -115,84 +108,6 @@ func ContainsAny(a []int, vs ...int) bool {
 	}
 
 	return false
-}
-
-// Count ...
-func Count(a []int, n int) int {
-	var c int
-	for i := 0; i < len(a); i++ {
-		if a[i] == n {
-			c++
-		}
-	}
-
-	return c
-}
-
-// Join several slices into one.
-func Join(as ...[]int) []int {
-	var j, k, n int
-	for i := 0; i < len(as); i++ {
-		n += len(as[i])
-	}
-
-	return Generate(
-		func(i int) int {
-			if k < len(as[j]) {
-				k++
-			} else {
-				j++
-				k = 1
-			}
-
-			return as[j][k-1]
-		},
-		n,
-	)
-}
-
-// Join2 ...
-func Join2(as ...[]int) []int {
-	var n int
-	for i := 0; i < len(as); i++ {
-		n += len(as[i])
-	}
-
-	a := make([]int, n)
-	n = 0
-	for i := 0; i < len(as); i++ {
-		n += copy(a[n:n+len(as[i])], as[i])
-	}
-
-	return a
-}
-
-// Join3 ...
-func Join3(as ...[]int) []int {
-	var n int
-	for i := 0; i < len(as); i++ {
-		n += len(as[i])
-	}
-
-	a := make([]int, 0, n)
-	for i := 0; i < len(as); i++ {
-		a = append(a, as[i]...)
-	}
-
-	return a
-}
-
-// Search for a value and return the smallest index
-// referencing it. If not found, n will be returned.
-func Search(a []int, n int) int {
-	for i := 0; i < len(a); i++ {
-		if a[i] == n {
-			return i
-		}
-	}
-
-	// TODO: Should this return -1 instead?
-	return len(a)
 }
 
 // ContainsSubSlice returns the index a subslice is found within a slice. If not
@@ -215,10 +130,86 @@ func ContainsSubSlice(a, sub []int) int {
 	return len(a)
 }
 
-// RemoveAll of several values from a slice.
-func RemoveAll(a []int, vs ...int) []int {
+// Copy a slice.
+func Copy(a []int) []int {
+	b := make([]int, len(a))
+	copy(b, a)
+	return b
+}
+
+// Count the number of occurances of a given number in a slice.
+func Count(a []int, n int) int {
+	var c int
+	for i := 0; i < len(a); i++ {
+		if a[i] == n {
+			c++
+		}
+	}
+
+	return c
+}
+
+// Equal ...
+func Equal(a, b []int) bool {
+	if len(a) != len(b) {
+		return false
+	}
+
+	for i := 0; i < len(a); i++ {
+		if a[i] != b[i] {
+			return false
+		}
+	}
+
+	return true
+}
+
+// Freq returns the mapping of each value in a slice to its
+// frequency of occurance in the slice.
+func Freq(a []int) map[int]int {
+	m := make(map[int]int)
+	for i := 0; i < len(a); i++ {
+		m[a[i]]++
+	}
+
+	return m
+}
+
+// Join several slices into one.
+func Join(as ...[]int) []int {
+	var n int
+	for i := 0; i < len(as); i++ {
+		n += len(as[i])
+	}
+
+	a := make([]int, n)
+	n = 0
+	for i := 0; i < len(as); i++ {
+		n += copy(a[n:n+len(as[i])], as[i])
+	}
+
+	return a
+}
+
+// Join2 ...
+func Join2(as ...[]int) []int {
+	var n int
+	for i := 0; i < len(as); i++ {
+		n += len(as[i])
+	}
+
+	a := make([]int, 0, n)
+	for i := 0; i < len(as); i++ {
+		a = append(a, as[i]...)
+	}
+
+	return a
+}
+
+// Remove several values from a slice.
+func Remove(a []int, vs ...int) []int {
 	f := func(ai int) bool {
-		for j := 0; j < len(vs) && !r; j++ {
+		for j := 0; j < len(vs); j++ {
 			if ai == vs[j] {
 				return false
 			}
@@ -234,6 +225,24 @@ func RemoveAll(a []int, vs ...int) []int {
 func Resize(a []int, n, c int) []int {
 	b := make([]int, n, c)
 	copy(b, a[:math.MinInt(n, len(a))])
+	return b
+}
+
+// Search for a value and return the smallest index
+// referencing it. If not found, n will be returned.
+func Search(a []int, n int) int {
+	var i int
+	for ; i < len(a) && a[i] != n; i++ {
+	}
+
+	// TODO: Should this return -1 instead?
+	return i
+}
+
+// SubSlice returns a copy of a[i:j].
+func SubSlice(a []int, i, j int) []int {
+	b := make([]int, j-i)
+	copy(b, a[i:j])
 	return b
 }
 
