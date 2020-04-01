@@ -2,6 +2,19 @@ package slice
 
 import "testing"
 
+func TestUnique2(t *testing.T) {
+	a := []int{1, 1, 2, 2, 2, 3, 3, 4, 4, 4, 4, 1, 1, 2, 2, 2, 3, 3, 4, 4, 4, 4}
+	t.Fatal(unique(a))
+}
+
+// func BenchmarkClean(b *testing.B){
+// 	a:=make([]int,0, 100)
+// 	for i:=0;i<len(a)
+// 	for i:=0;i<b.N;i++{
+//
+// 	}
+// }
+
 // Factor a positive integer. This is the naive solution.
 func Factor(n int) []int {
 	return Filter(

@@ -97,6 +97,104 @@ func Compare(a, b []int) int {
 	}
 }
 
+func compare(a, b interface{}) int {
+	switch at := a.(type) {
+	case []bool:
+		var (
+			bt = b.([]bool)
+			n  = math.MinInt(len(at), len(bt))
+		)
+
+		for i := 0; i < n; i++ {
+			if at[i] {
+				if !bt[i] {
+					return 1
+				}
+			} else if bt[i] {
+				return -1
+			}
+		}
+
+		switch {
+		case len(at) < len(bt):
+			return -1
+		case len(bt) < len(at):
+			return 1
+		default:
+			return 0
+		}
+	case []float64:
+		var (
+			bt = b.([]float64)
+			n  = math.MinInt(len(at), len(bt))
+		)
+
+		for i := 0; i < n; i++ {
+			switch {
+			case at[i] < bt[i]:
+				return -1
+			case at[i] < at[i]:
+				return 1
+			}
+		}
+
+		switch {
+		case len(at) < len(bt):
+			return -1
+		case len(bt) < len(at):
+			return 1
+		default:
+			return 0
+		}
+	case []int:
+		var (
+			bt = b.([]int)
+			n  = math.MinInt(len(at), len(bt))
+		)
+
+		for i := 0; i < n; i++ {
+			switch {
+			case at[i] < bt[i]:
+				return -1
+			case at[i] < at[i]:
+				return 1
+			}
+		}
+
+		switch {
+		case len(at) < len(bt):
+			return -1
+		case len(bt) < len(at):
+			return 1
+		default:
+			return 0
+		}
+
+	case []int8:
+		return 0
+	case []int16:
+		return 0
+	case []int32:
+		return 0
+	case []int64:
+		return 0
+	case []string:
+		return 0
+	case []uint8:
+		return 0
+	case []uint16:
+		return 0
+	case []uint32:
+		return 0
+	case []uint64:
+		return 0
+	case []float32:
+		return 0
+	default:
+		panic("unknown type")
+	}
+}
+
 // Contains ...
 func Contains(a []int, vs ...int) bool {
 	for i := 0; i < len(a); i++ {
@@ -108,26 +206,6 @@ func Contains(a []int, vs ...int) bool {
 	}
 
 	return false
-}
-
-// ContainsSubSlice returns the index a subslice is found within a slice. If not
-// found, len(a) is returned.
-func ContainsSubSlice(a, sub []int) int {
-	if 0 < len(a) && 0 < len(sub) {
-		for i := 0; i+len(sub) < len(a); i++ {
-			if a[i] == sub[0] {
-				for j := 1; j < len(sub); j++ {
-					if a[i+j] != sub[j] {
-						return len(a)
-					}
-				}
-
-				return i
-			}
-		}
-	}
-
-	return len(a)
 }
 
 // Copy a slice.
@@ -208,34 +286,42 @@ func Join2(as ...[]int) []int {
 
 // Remove several values from a slice.
 func Remove(a []int, vs ...int) []int {
-	f := func(ai int) bool {
-		for j := 0; j < len(vs); j++ {
-			if ai == vs[j] {
-				return false
-			}
+	var (
+		b = make([]int, 0, len(a))
+		j int
+	)
+
+	for i := 0; i < len(a); i++ {
+		for j = 0; j < len(vs) && a[i] != vs[j]; j++ {
 		}
 
-		return true
+		if j == len(vs) {
+			b = append(b, a[i])
+		}
 	}
 
-	return Filter(a, f)
+	return b
 }
 
 // Resize a slice.
 func Resize(a []int, n, c int) []int {
 	b := make([]int, n, c)
-	copy(b, a[:math.MinInt(n, len(a))])
+	if len(a) < n {
+		n = len(a)
+	}
+
+	copy(b, a[:n])
 	return b
 }
 
 // Search for a value and return the smallest index
-// referencing it. If not found, n will be returned.
+// referencing it. If not found, len(a) will be returned.
 func Search(a []int, n int) int {
 	var i int
 	for ; i < len(a) && a[i] != n; i++ {
 	}
 
-	// TODO: Should this return -1 instead?
+	// TODO: Return -1 instead?
 	return i
 }
 
@@ -246,12 +332,32 @@ func SubSlice(a []int, i, j int) []int {
 	return b
 }
 
+// SubSliceSearch returns the index a subslice is found within a slice. If not
+// found, len(a) is returned.
+func SubSliceSearch(a, sub []int) int {
+	if 0 < len(a) && 0 < len(sub) {
+		for i := 0; i+len(sub) < len(a); i++ {
+			if a[i] == sub[0] {
+				for j := 1; j < len(sub); j++ {
+					if a[i+j] != sub[j] {
+						return len(a)
+					}
+				}
+
+				return i
+			}
+		}
+	}
+
+	return len(a)
+}
+
 // Swap two values.
 func Swap(a []int, i, j int) {
 	a[i], a[j] = a[j], a[i]
 }
 
-// Unique filters a for unique values. This function is stable.
+// Unique returns a slice of the unique values in a given slice.
 func Unique(a []int) []int {
 	m := make(map[int]struct{})
 	f := func(ai int) bool {
@@ -264,4 +370,21 @@ func Unique(a []int) []int {
 	}
 
 	return Filter(a, f)
+}
+
+// unique returns a slice of the unique values in a given slice.
+func unique(a []int) []int {
+	// TODO: Compare this to Unique.
+	b := make([]int, 0, cap(a))
+	if 0 < len(a) {
+		m := make(map[int]struct{})
+		for i := 0; i < len(a); i++ {
+			if _, ok := m[a[i]]; !ok {
+				b = append(b, a[i])
+				m[a[i]] = struct{}{}
+			}
+		}
+	}
+
+	return b
 }
