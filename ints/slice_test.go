@@ -2,30 +2,17 @@ package slice
 
 import "testing"
 
-func TestUnique2(t *testing.T) {
-	a := []int{1, 1, 2, 2, 2, 3, 3, 4, 4, 4, 4, 1, 1, 2, 2, 2, 3, 3, 4, 4, 4, 4}
-	t.Fatal(unique(a))
-}
-
-// func BenchmarkClean(b *testing.B){
-// 	a:=make([]int,0, 100)
-// 	for i:=0;i<len(a)
-// 	for i:=0;i<b.N;i++{
-//
-// 	}
-// }
-
 // Factor a positive integer. This is the naive solution.
 func Factor(n int) []int {
 	return Filter(
 		Generate(func(i int) int { return i + 1 }, n),
-		func(ai int) bool { return n%ai == 0 },
+		func(ai int) bool { return 1 < ai && n%ai == 0 },
 	)
 }
 
 // Prime determines if a positive integer is prime.
 func Prime(n int) bool {
-	return len(Factor(n)) == 2
+	return len(Factor(n)) == 1
 }
 
 // Primes returns a slice of primes less than or equal to n.
@@ -37,7 +24,7 @@ func Primes(n int) []int {
 }
 
 func TestPrimes(t *testing.T) {
-	// t.Fatal(Primes(100))
+	t.Fatal(Primes(100))
 }
 
 func TestCompare(t *testing.T) {
@@ -649,10 +636,6 @@ func TestJoin(t *testing.T) {
 		if rec := Join(test.a...); !Equal(test.exp, rec) {
 			t.Fatalf("\n   given: %d\nexpected: %d\nreceived: %d\n", test.a, test.exp, rec)
 		}
-
-		if rec := Join2(test.a...); !Equal(test.exp, rec) {
-			t.Fatalf("\n   given: %d\nexpected: %d\nreceived: %d\n", test.a, test.exp, rec)
-		}
 	}
 }
 
@@ -926,4 +909,11 @@ func TestUnique(t *testing.T) {
 	}
 }
 
-// TODO: Benchmark Join to determine which is best
+func TestFold(t *testing.T) {
+	// var (
+	// 	a = []int{1, 2, 3}
+	// 	s string
+	// )
+
+	// t.Fatalf("'%s'", Fold(a, s, func(x interface{}, n int) interface{} { return strings.Trim(x.(string)+" "+strconv.Itoa(n), " ") }).(string))
+}

@@ -1,18 +1,12 @@
 package slice
 
-import "github.com/nathangreene3/math"
-
-// ------------------------------------------------------------
-// DESIGN DECISION
-// ------------------------------------------------------------
-// If a function maps a type to the same type, the given type
-// will not be mutated and the returned type will be a new
-// value. If no type is returned, then the given type is
-// potentially mutated.
-// ------------------------------------------------------------
+import "strconv"
 
 // Filterer defines the conditions for retaining a value.
 type Filterer func(n int) bool
+
+// Folder defines the accumulation of a value into a generic value.
+type Folder func(x interface{}, n int) interface{}
 
 // Generator defines the ith value in a slice.
 type Generator func(i int) int
@@ -33,6 +27,16 @@ func Filter(a []int, f Filterer) []int {
 	}
 
 	return b
+}
+
+// Fold values into a single value given a seed x.
+func Fold(a []int, x interface{}, f Folder) interface{} {
+	y := x
+	for i := 0; i < len(a); i++ {
+		y = f(y, a[i])
+	}
+
+	return y
 }
 
 // Generate a slice.
@@ -65,19 +69,13 @@ func Reduce(a []int, f Reducer) int {
 	return v
 }
 
-// ToMap returns a map of index-to-value pairs from a slice.
-func ToMap(a []int) map[int]int {
-	m := make(map[int]int)
-	for len(m) < len(a) {
-		m[len(m)] = a[len(m)]
-	}
-
-	return m
-}
-
 // Compare ...
 func Compare(a, b []int) int {
-	n := math.MinInt(len(a), len(b))
+	n := len(a)
+	if len(b) < n {
+		n = len(b)
+	}
+
 	for i := 0; i < n; i++ {
 		switch {
 		case a[i] < b[i]:
@@ -94,104 +92,6 @@ func Compare(a, b []int) int {
 		return 1
 	default:
 		return 0
-	}
-}
-
-func compare(a, b interface{}) int {
-	switch at := a.(type) {
-	case []bool:
-		var (
-			bt = b.([]bool)
-			n  = math.MinInt(len(at), len(bt))
-		)
-
-		for i := 0; i < n; i++ {
-			if at[i] {
-				if !bt[i] {
-					return 1
-				}
-			} else if bt[i] {
-				return -1
-			}
-		}
-
-		switch {
-		case len(at) < len(bt):
-			return -1
-		case len(bt) < len(at):
-			return 1
-		default:
-			return 0
-		}
-	case []float64:
-		var (
-			bt = b.([]float64)
-			n  = math.MinInt(len(at), len(bt))
-		)
-
-		for i := 0; i < n; i++ {
-			switch {
-			case at[i] < bt[i]:
-				return -1
-			case at[i] < at[i]:
-				return 1
-			}
-		}
-
-		switch {
-		case len(at) < len(bt):
-			return -1
-		case len(bt) < len(at):
-			return 1
-		default:
-			return 0
-		}
-	case []int:
-		var (
-			bt = b.([]int)
-			n  = math.MinInt(len(at), len(bt))
-		)
-
-		for i := 0; i < n; i++ {
-			switch {
-			case at[i] < bt[i]:
-				return -1
-			case at[i] < at[i]:
-				return 1
-			}
-		}
-
-		switch {
-		case len(at) < len(bt):
-			return -1
-		case len(bt) < len(at):
-			return 1
-		default:
-			return 0
-		}
-
-	case []int8:
-		return 0
-	case []int16:
-		return 0
-	case []int32:
-		return 0
-	case []int64:
-		return 0
-	case []string:
-		return 0
-	case []uint8:
-		return 0
-	case []uint16:
-		return 0
-	case []uint32:
-		return 0
-	case []uint64:
-		return 0
-	case []float32:
-		return 0
-	default:
-		panic("unknown type")
 	}
 }
 
@@ -260,22 +160,6 @@ func Join(as ...[]int) []int {
 		n += len(as[i])
 	}
 
-	a := make([]int, n)
-	n = 0
-	for i := 0; i < len(as); i++ {
-		n += copy(a[n:n+len(as[i])], as[i])
-	}
-
-	return a
-}
-
-// Join2 ...
-func Join2(as ...[]int) []int {
-	var n int
-	for i := 0; i < len(as); i++ {
-		n += len(as[i])
-	}
-
 	a := make([]int, 0, n)
 	for i := 0; i < len(as); i++ {
 		a = append(a, as[i]...)
@@ -305,11 +189,11 @@ func Remove(a []int, vs ...int) []int {
 
 // Resize a slice.
 func Resize(a []int, n, c int) []int {
-	b := make([]int, n, c)
 	if len(a) < n {
 		n = len(a)
 	}
 
+	b := make([]int, n, c)
 	copy(b, a[:n])
 	return b
 }
@@ -321,7 +205,6 @@ func Search(a []int, n int) int {
 	for ; i < len(a) && a[i] != n; i++ {
 	}
 
-	// TODO: Return -1 instead?
 	return i
 }
 
@@ -332,9 +215,9 @@ func SubSlice(a []int, i, j int) []int {
 	return b
 }
 
-// SubSliceSearch returns the index a subslice is found within a slice. If not
+// SearchSubSlice returns the index a subslice is found within a slice. If not
 // found, len(a) is returned.
-func SubSliceSearch(a, sub []int) int {
+func SearchSubSlice(a, sub []int) int {
 	if 0 < len(a) && 0 < len(sub) {
 		for i := 0; i+len(sub) < len(a); i++ {
 			if a[i] == sub[0] {
@@ -357,31 +240,72 @@ func Swap(a []int, i, j int) {
 	a[i], a[j] = a[j], a[i]
 }
 
-// Unique returns a slice of the unique values in a given slice.
-func Unique(a []int) []int {
-	m := make(map[int]struct{})
-	f := func(ai int) bool {
-		_, ok := m[ai]
-		if !ok {
-			m[ai] = struct{}{}
-		}
-
-		return !ok
+// ToBts converts a slice of integers to a slice of bytes.
+func ToBts(a []int) []byte {
+	b := make([]byte, 0, len(a))
+	for i := 0; i < len(a); i++ {
+		b = append(b, byte(a[i]))
 	}
 
-	return Filter(a, f)
+	return b
 }
 
-// unique returns a slice of the unique values in a given slice.
-func unique(a []int) []int {
-	// TODO: Compare this to Unique.
-	b := make([]int, 0, cap(a))
-	if 0 < len(a) {
+// ToFlts converts a slice of integers to a slice of 64-bit floats.
+func ToFlts(a []int) []float64 {
+	b := make([]float64, 0, len(a))
+	for i := 0; i < len(a); i++ {
+		b = append(b, float64(a[i]))
+	}
+
+	return b
+}
+
+// ToMap returns a map of index-to-value pairs from a slice.
+func ToMap(a []int) map[int]int {
+	m := make(map[int]int)
+	for len(m) < len(a) {
+		m[len(m)] = a[len(m)]
+	}
+
+	return m
+}
+
+// ToStrs converts a slice of integers to a slice of strings.
+func ToStrs(a []int) []string {
+	b := make([]string, 0, len(a))
+	for i := 0; i < len(a); i++ {
+		b = append(b, strconv.Itoa(a[i]))
+	}
+
+	return b
+}
+
+// ToUInts converts a slice of integers to a slice of unsigned integers.
+func ToUInts(a []int) []uint {
+	b := make([]uint, 0, len(a))
+	for i := 0; i < len(a); i++ {
+		b = append(b, uint(a[i]))
+	}
+
+	return b
+}
+
+// Unique returns a slice of the unique values in several slices.
+func Unique(as ...[]int) []int {
+	var n int
+	for i := 0; i < len(as); i++ {
+		n += len(as[i])
+	}
+
+	b := make([]int, 0, n)
+	if 0 < n {
 		m := make(map[int]struct{})
-		for i := 0; i < len(a); i++ {
-			if _, ok := m[a[i]]; !ok {
-				b = append(b, a[i])
-				m[a[i]] = struct{}{}
+		for i := 0; i < len(as); i++ {
+			for j := 0; j < len(as[i]); j++ {
+				if _, ok := m[as[i][j]]; !ok {
+					b = append(b, as[i][j])
+					m[as[i][j]] = struct{}{}
+				}
 			}
 		}
 	}
