@@ -69,7 +69,7 @@ func Reduce(a []int, f Reducer) int {
 	return v
 }
 
-// Compare ...
+// Compare two slices.
 func Compare(a, b []int) int {
 	n := len(a)
 	if len(b) < n {
@@ -95,7 +95,7 @@ func Compare(a, b []int) int {
 	}
 }
 
-// Contains ...
+// Contains determines if any values are found in a slice.
 func Contains(a []int, vs ...int) bool {
 	for i := 0; i < len(a); i++ {
 		for j := 0; j < len(vs); j++ {
@@ -127,7 +127,7 @@ func Count(a []int, n int) int {
 	return c
 }
 
-// Equal ...
+// Equal determines if two slices are equal.
 func Equal(a, b []int) bool {
 	if len(a) != len(b) {
 		return false
@@ -198,8 +198,8 @@ func Resize(a []int, n, c int) []int {
 	return b
 }
 
-// Search for a value and return the smallest index
-// referencing it. If not found, len(a) will be returned.
+// Search for a value and return the smallest index referencing it.
+// If not found, the length of the slice will be returned.
 func Search(a []int, n int) int {
 	var i int
 	for ; i < len(a) && a[i] != n; i++ {
@@ -208,15 +208,16 @@ func Search(a []int, n int) int {
 	return i
 }
 
-// SubSlice returns a copy of a[i:j].
+// SubSlice returns a copy of the subslice from index i up to but
+// not including j.
 func SubSlice(a []int, i, j int) []int {
 	b := make([]int, j-i)
 	copy(b, a[i:j])
 	return b
 }
 
-// SearchSubSlice returns the index a subslice is found within a slice. If not
-// found, len(a) is returned.
+// SearchSubSlice returns the index a subslice is found within a
+// slice. If not found, the length of the slice is returned.
 func SearchSubSlice(a, sub []int) int {
 	if 0 < len(a) && 0 < len(sub) {
 		for i := 0; i+len(sub) < len(a); i++ {
@@ -235,12 +236,12 @@ func SearchSubSlice(a, sub []int) int {
 	return len(a)
 }
 
-// Swap two values.
+// Swap two values in a slice.
 func Swap(a []int, i, j int) {
 	a[i], a[j] = a[j], a[i]
 }
 
-// ToBts converts a slice of integers to a slice of bytes.
+// ToBts converts a slice to a slice of bytes.
 func ToBts(a []int) []byte {
 	b := make([]byte, 0, len(a))
 	for i := 0; i < len(a); i++ {
@@ -250,7 +251,7 @@ func ToBts(a []int) []byte {
 	return b
 }
 
-// ToFlts converts a slice of integers to a slice of 64-bit floats.
+// ToFlts converts a slice to a slice of 64-bit floats.
 func ToFlts(a []int) []float64 {
 	b := make([]float64, 0, len(a))
 	for i := 0; i < len(a); i++ {
@@ -270,7 +271,7 @@ func ToMap(a []int) map[int]int {
 	return m
 }
 
-// ToStrs converts a slice of integers to a slice of strings.
+// ToStrs converts a slice to a slice of strings.
 func ToStrs(a []int) []string {
 	b := make([]string, 0, len(a))
 	for i := 0; i < len(a); i++ {
@@ -280,7 +281,7 @@ func ToStrs(a []int) []string {
 	return b
 }
 
-// ToUInts converts a slice of integers to a slice of unsigned integers.
+// ToUInts converts a slice to a slice of unsigned integers.
 func ToUInts(a []int) []uint {
 	b := make([]uint, 0, len(a))
 	for i := 0; i < len(a); i++ {
@@ -290,7 +291,8 @@ func ToUInts(a []int) []uint {
 	return b
 }
 
-// Unique returns a slice of the unique values in several slices.
+// Unique returns a slice containing the unique values in several
+// slices.
 func Unique(as ...[]int) []int {
 	var n int
 	for i := 0; i < len(as); i++ {
