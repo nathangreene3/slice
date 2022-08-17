@@ -1,65 +1,173 @@
 package slice
 
-// Filterer defines the conditions for retaining a value.
-type Filterer func(n int) bool
-
-// Generator defines the ith value in a slice.
-type Generator func(i int) int
-
-// Mapper defines the mapping of a value to a new value.
-type Mapper func(n int) int
-
-// Reducer defines the mapping (reduction) of two values to one.
-type Reducer func(m, n int) int
-
-// Filter values from a slice into a new slice.
-func Filter(a []int, f Filterer) []int {
-	b := make([]int, 0, len(a))
-	for i := 0; i < len(a); i++ {
-		if f(a[i]) {
-			b = append(b, a[i])
+func Contains[T comparable](s []T, v T) bool {
+	for i := 0; i < len(s); i++ {
+		if s[i] == v {
+			return true
 		}
 	}
 
-	return b
+	return false
 }
 
-// Generate a slice.
-func Generate(f Generator, n int) []int {
-	a := make([]int, 0, n)
-	for ; 0 < n; n-- {
-		a = append(a, f(len(a)))
+func ContainsAny[T comparable](s []T, vs ...T) bool {
+	for i := 0; i < len(s); i++ {
+		for j := 0; j < len(vs); j++ {
+			if s[i] == vs[j] {
+				return true
+			}
+		}
 	}
 
-	return a
+	return false
 }
 
-// Map a slice to a new slice.
-func Map(a []int, f Mapper) []int {
-	b := make([]int, 0, len(a))
-	for i := 0; i < len(a); i++ {
-		b = append(b, f(a[i]))
-	}
-
-	return b
+func Copy[T any](s []T) []T {
+	return append(make([]T, 0, len(s)), s...)
 }
 
-// Reduce a slice to a single value.
-func Reduce(a []int, f Reducer) int {
-	var v int
-	for i := 0; i < len(a); i++ {
-		v = f(v, a[i])
+func Count[T comparable](s []T, v T) int {
+	var n int
+	for i := 0; i < len(s); i++ {
+		if s[i] == v {
+			n++
+		}
 	}
 
-	return v
+	return n
 }
 
-// ToMap returns a map of index-to-value pairs from a slice.
-func ToMap(a []int) map[int]int {
-	m := make(map[int]int)
-	for i := 0; i < len(a); i++ {
-		m[i] = a[i]
+func Equal[T comparable](ss ...[]T) bool {
+	for i := 1; i < len(ss); i++ {
+		if len(ss[0]) != len(ss[i]) {
+			return false
+		}
+
+		for j := 0; j < len(ss[0]); j++ {
+			if ss[0][j] != ss[i][j] {
+				return false
+			}
+		}
 	}
 
-	return m
+	return true
+}
+
+func Filter[T any](s []T, f func(T) bool) []T {
+	filtered := make([]T, 0, len(s))
+	for i := 0; i < len(s); i++ {
+		if f(s[i]) {
+			filtered = append(filtered, s[i])
+		}
+	}
+
+	return filtered
+}
+
+func Fold[T0, T1 any](s []T0, seed T1, f func(T1, T0) T1) T1 {
+	for i := 0; i < len(s); i++ {
+		seed = f(seed, s[i])
+	}
+
+	return seed
+}
+
+func Freq[T comparable](s []T) map[T]int {
+	freq := make(map[T]int)
+	for i := 0; i < len(s); i++ {
+		freq[s[i]]++
+	}
+
+	return freq
+}
+
+func Generate[T any](n int, f func(int) T) []T {
+	s := make([]T, 0, n)
+	for i := 0; i < n; i++ {
+		s = append(s, f(i))
+	}
+
+	return s
+}
+
+func Join[T any](ss ...[]T) []T {
+	var n int
+	for i := 0; i < len(ss); i++ {
+		n += len(ss[i])
+	}
+
+	joined := make([]T, 0, n)
+	for i := 0; i < len(ss); i++ {
+		joined = append(joined, ss[i]...)
+	}
+
+	return joined
+}
+
+func Map[T0, T1 any](s []T0, f func(T0) T1) []T1 {
+	t := make([]T1, 0, len(s))
+	for i := 0; i < len(s); i++ {
+		t = append(t, f(s[i]))
+	}
+
+	return t
+}
+
+func Reduce[T any](s []T, f func(_, _ T) T) T {
+	var r T
+	if len(s) != 0 {
+		r = s[0]
+	}
+
+	return Fold(s, r, f)
+}
+
+func Remove[T comparable](s []T, vs ...T) []T {
+	return Filter(s, func(v T) bool { return !Contains(s, v) })
+}
+
+func Resize[T any](s []T, n, c int) []T {
+	if len(s) < n {
+		n = len(s)
+	}
+
+	return append(make([]T, 0, c), s[:n]...)
+}
+
+func Search[T comparable](s []T, v any) int {
+	var i int
+	for ; i < len(s) && s[i] != v; i++ {
+	}
+
+	return i
+}
+
+func SubSlice[T any](s []T, i, j int) []T {
+	return append(make([]T, 0, j-i), s[i:j]...)
+}
+
+func Swap[T any](s []T, i, j int) {
+	s[i], s[j] = s[j], s[i]
+}
+
+func Unique[T comparable](ss ...[]T) []T {
+	var n int
+	for i := 0; i < len(ss); i++ {
+		n += len(ss[i])
+	}
+
+	var unique []T
+	if n != 0 {
+		observed := make(map[T]struct{})
+		for i := 0; i < len(ss); i++ {
+			for j := 0; j < len(ss[i]); j++ {
+				if _, ok := observed[ss[i][j]]; !ok {
+					unique = append(unique, ss[i][j])
+					observed[ss[i][j]] = struct{}{}
+				}
+			}
+		}
+	}
+
+	return unique
 }
